@@ -75,7 +75,7 @@ def create_message(username, button):
         "skiingviral":  f"Who would you share this run with? 🤩"
                         f"Tag someone that needs to see this 👊\n\n"
                         f"Follow 👉 @skiingviral for your ultimate skiing and snowboarding content 🦍\n\n"
-                        f"Credit: @michi_ralle\n"
+                        f"Credit: @{username}\n"
                         f"#skiingviral\n\n"
                         f"#skiing #powder #winterseason #snowboardlife #skiinglife #freeride #snowboardingday #snowboardingseason #snowboardingmadness #offpiste #forskiing #snowboarding #skiseason #skiingseason #winterwonderland #snow #pow #powpow #snowboard #freestyle"
     }
