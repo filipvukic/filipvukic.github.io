@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Downloader</title>
+    <style>
+        body {
+            font-family: system-ui;
+            background-color: #fafafa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #c13584;
+            margin-bottom: 20px;
+            margin: 20px;
+        }
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+        }
+        label, input, button, textarea {
+            width: calc(100% - 20px);
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #dbdbdb;
+            font-size: 16px;
+        }
+        button {
+            background-color: #c13584;
+            color: #fff;
+            cursor: pointer;
+            width: fit-content;
+            margin-right: 2%;
+        }
+        button:hover {
+            background-color: #e95950;
+        }
+        .content-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .text-download-wrapper,
+        video {
+            width: 48%;
+        }
+        textarea {
+            width: calc(100% - 20px);
+            margin-bottom: 10px;
+            resize: vertical;
+        }
+        a {
+            color: #c13584;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Instagram Video Downloader</h1>
+    
+    <form method="POST" action="/">
+        <label for="url">Post URL:</label>
+        <input type="url" name="url" required>
+
+        <button type="submit" name="button" value="powdervibe">PowderVibe</button>
+        <button type="submit" name="button" value="thesnowboarding">TheSnowboarding</button>
+        <button type="submit" name="button" value="for.skiing">For.Skiing</button>
+    </form>
+    
+    {% if message and video_url %}
+    <div class="content-wrapper" style="width: 100%; max-width: 800px;">
+        <div class="text-download-wrapper">
+            <h2 style="color: #c13584; font-size: 18px; margin-bottom: 10px;">{{ account_name }}</h2> 
+            <textarea id="message-text" rows="16" style="width: calc(100% - 20px);">{{ message }}</textarea><br>
+            <button src="{{ url_for('video_stream', url=video_url) }}" download="video.mp4">Download Video</a>
+        </div>
+        <video loop controls>
+            <source src="{{ url_for('video_stream', url=video_url) }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+    {% endif %}
+</body>
+</html>
