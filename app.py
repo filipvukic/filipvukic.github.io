@@ -35,8 +35,20 @@ def index():
 
 @app.route("/download")
 def download():
+    # Proxy Information
+    proxy_ip = "154.95.36.199"
+    proxy_port = "6893"
+    proxy_username = "aprgrtgj"
+    proxy_password = "fqbi3kxvsmhd"
+
+    # Proxy Configuration
+    proxies = {
+        "http": f"http://{proxy_username}:{proxy_password}@{proxy_ip}:{proxy_port}",
+        "https": f"https://{proxy_username}:{proxy_password}@{proxy_ip}:{proxy_port}",
+    }
+
     video_url = request.args.get('video_url')
-    response = requests.get(video_url, stream=True)
+    response = requests.get(video_url, stream=True, proxies=proxies)
 
     def generate():
         for chunk in response.iter_content(chunk_size=8192):
