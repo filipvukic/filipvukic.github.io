@@ -70,7 +70,14 @@ def create_message(username, button):
         "for.skiing": f"Tag your skiing buddy 😎\n\n"
                       f"Follow 👉 @for.skiing for the best skiing content! ⛷\n\n"
                       f"Credit: @{username}\n\n"
-                      f"#forskiing #skiing #snowboarding #skiseason #winterwonderland"
+                      f"#forskiing #skiing #snowboarding #skiseason #winterwonderland",
+
+        "skiingviral":  f"Who would you share this run with? 🤩"
+                        f"Tag someone that needs to see this 👊\n\n"
+                        f"Follow 👉 @skiingviral for your ultimate skiing and snowboarding content 🦍\n\n"
+                        f"Credit: @michi_ralle\n"
+                        f"#skiingviral\n\n"
+                        f"#skiing #powder #winterseason #snowboardlife #skiinglife #freeride #snowboardingday #snowboardingseason #snowboardingmadness #offpiste #forskiing #snowboarding #skiseason #skiingseason #winterwonderland #snow #pow #powpow #snowboard #freestyle"
     }
     return messages.get(button, "Unknown button")
 
