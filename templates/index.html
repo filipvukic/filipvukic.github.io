@@ -45,11 +45,7 @@
         .content-wrapper {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-        }
-        .text-download-wrapper,
-        video {
-            width: 48%;
+            align-items: flex-start;
         }
         textarea {
             width: calc(100% - 20px);
@@ -81,16 +77,33 @@
     
     {% if message and video_url %}
     <div class="content-wrapper" style="width: 100%; max-width: 800px;">
-        <div class="text-download-wrapper">
-            <h2 style="color: #c13584; font-size: 18px; margin-bottom: 10px;">{{ account_name }}</h2> 
-            <textarea id="message-text" rows="16" style="width: calc(100% - 20px);">{{ message }}</textarea><br>
-            <button src="{{ url_for('video_stream', url=video_url) }}" download="video.mp4">Download Video</a>
+        <div>
+            <textarea id="message-text" rows="15" style="width: calc(100% - 20px);">{{ message }}</textarea><br>
+            <button onclick="copyCaption()">Copy Caption</button>
+            <!-- Hidden anchor tag for triggering download -->
+            <a href="{{ url_for('download', video_url=video_url) }}" download="video.mp4" id="downloadLink" style="display:none;">Download Video</a>
         </div>
-        <video loop controls>
-            <source src="{{ url_for('video_stream', url=video_url) }}" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
+        <div style="width: 48%;">
+            <video loop controls style="width: 100%;">
+                <source src="{{ url_for('video_stream', url=video_url) }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <h3 style="margin: 10px;">Original Caption:</h3>
+            <pre style="margin: 10px; text-wrap: wrap;">{{ original_caption }}</p>
+        </div>
     </div>
+    <script>
+        // Copy caption function
+        function copyCaption() {
+            var copyText = document.getElementById("message-text");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); /* For mobile devices */
+            document.execCommand("copy");
+            debugger;
+        }
+        // Automatically click the download link when the page loads
+        document.getElementById("downloadLink").click();
+    </script>
     {% endif %}
 </body>
 </html>

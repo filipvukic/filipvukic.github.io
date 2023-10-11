@@ -5,6 +5,7 @@ import requests
 app = Flask(__name__)
 
 L = instaloader.Instaloader()
+
 L.save_metadata = False
 L.download_pictures = False
 L.download_video_thumbnails = False
@@ -15,6 +16,7 @@ L.download_comments = False
 def index():
     message = None
     video_url = None
+    original_caption = None  # New variable for the original caption
     button = None
     
     if request.method == 'POST':
@@ -24,31 +26,21 @@ def index():
         post = instaloader.Post.from_shortcode(L.context, shortcode)
         username = post.owner_username
         
-        # Set the video URL
         video_url = post.video_url
         
-        # Create a message based on the button pressed
+        # Get the original caption of the post
+        original_caption = post.caption  # Adding this line to get the caption
+        
         message = create_message(username, button)
     
-    return render_template("index.html", message=message, video_url=video_url, account_name=button)
+    # Passing the original_caption to the template
+    return render_template("index.html", message=message, video_url=video_url, account_name=button, original_caption=original_caption)
 
 
 @app.route("/download")
 def download():
-    # Proxy Information
-    proxy_ip = "154.95.36.199"
-    proxy_port = "6893"
-    proxy_username = "aprgrtgj"
-    proxy_password = "fqbi3kxvsmhd"
-
-    # Proxy Configuration
-    proxies = {
-        "http": f"http://{proxy_username}:{proxy_password}@{proxy_ip}:{proxy_port}",
-        "https": f"https://{proxy_username}:{proxy_password}@{proxy_ip}:{proxy_port}",
-    }
-
     video_url = request.args.get('video_url')
-    response = requests.get(video_url, stream=True, proxies=proxies)
+    response = requests.get(video_url, stream=True)
 
     def generate():
         for chunk in response.iter_content(chunk_size=8192):
@@ -84,7 +76,7 @@ def create_message(username, button):
                       f"Credit: @{username}\n\n"
                       f"#forskiing #skiing #snowboarding #skiseason #winterwonderland",
 
-        "skiingviral":  f"Who would you share this run with? 🤩"
+        "skiingviral":  f"Who would you share this run with? 🤩 \n\n"
                         f"Tag someone that needs to see this 👊\n\n"
                         f"Follow 👉 @skiingviral for your ultimate skiing and snowboarding content 🦍\n\n"
                         f"Credit: @{username}\n"
