@@ -1,18 +1,14 @@
 import random
-from flask import Flask, render_template, request, Response, stream_with_context
-import instaloader
+from flask import Flask, render_template, request, Response, stream_with_context, jsonify
+from instagrapi import Client
 import requests
-from flask import jsonify
 
 app = Flask(__name__)
 
-L = instaloader.Instaloader()
-
-L.save_metadata = False
-L.download_pictures = False
-L.download_video_thumbnails = False
-L.download_geotags = False
-L.download_comments = False
+cl = Client()
+# You need to login with your Instagram account
+# Make sure to use environment variables or another secure way to handle credentials
+cl.login('plushy.se', 'Plushy1')
 
 @app.route("/", methods=['GET', 'POST'])
 def index():
@@ -28,21 +24,26 @@ def index():
             url = request.form.get('url')
             button = request.form.get('button')
             shortcode = url.split("/")[-2]
-            post = instaloader.Post.from_shortcode(L.context, shortcode)
-            username = post.owner_username
+            media_id = shortcode_to_media_id(shortcode)
+            media_info = cl.media_info(media_id)
+            username = media_info.user.username
             
-            video_url = post.video_url
-            original_caption = post.caption
+            if media_info.media_type == 2:  # Check if it's a video
+                video_url = media_info.video_url
+            original_caption = media_info.caption_text
             
             message = create_message(username, button)
             
             # Get 5 random captions based on the button pressed
             caption_choices = get_random_captions(button)
-        except instaloader.exceptions.InstaloaderException as e:
+        except Exception as e:
             # Send back the error message to client
             return jsonify({'error': str(e)}), 500
     
     return render_template("index.html", message=message, video_url=video_url, account_name=button, original_caption=original_caption, caption_choices=caption_choices)
+
+def shortcode_to_media_id(shortcode):
+    return cl.media_pk_from_code(shortcode)
 
 def get_random_captions(button):
     try:
