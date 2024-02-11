@@ -4,97 +4,112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Instagram Downloader</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: system-ui;
-            background-color: #fafafa;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #fff;
             display: flex;
             flex-direction: column;
             align-items: center;
+            margin: 0;
+            padding: 20px;
+            color: #333;
         }
         h1 {
-            color: #c13584;
-            margin-bottom: 20px;
-            margin: 20px;
+            color: #000;
+            margin: 40px 0 20px;
+            font-weight: 300;
         }
         form {
-            background-color: #fff;
+            background-color: #f0f0f5;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: none;
             margin: 20px;
+            width: 100%;
+            max-width: 480px;
         }
         label, input, button, textarea {
             width: calc(100% - 20px);
             margin-bottom: 10px;
-            padding: 10px;
+            padding: 12px;
             border-radius: 4px;
-            border: 1px solid #dbdbdb;
+            border: 1px solid #ccc;
             font-size: 16px;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+        input {
+            margin-bottom: 0;
+        }
+        .caption-btn {
+            font-size: 13px;
+            padding: 10px;
         }
         button {
-            background-color: #c13584;
+            background-color: #007aff;
             color: #fff;
-            cursor: pointer;
-            width: fit-content;
-            margin-right: 2%;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 20px; /* Rounded corners for a modern look */
+            transition: background-color 0.3s, transform 0.2s; /* Smooth transitions */
+            outline: none; /* Removes the outline to keep the design clean */
         }
-        button:hover {
-            background-color: #e95950;
+
+        button:hover, button:focus {
+            background-color: #005ecb; /* Darker shade on hover/focus */
+            transform: translateY(-2px); /* Slight lift effect */
+            cursor: pointer;
+        }
+
+        button:active {
+            background-color: #004cac; /* Even darker shade when active */
+            transform: translateY(1px); /* Pushes down for a click effect */
+        }
+
+        /* Optional: Add a slight shadow for depth (can be omitted for a flatter look) */
+        button:hover, button:focus {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         .content-wrapper {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
+            gap: 20px;
+            width: 100vw;
+            max-width: 960px;
+            background-color: #f0f0f5;
         }
-        textarea {
-            width: calc(100% - 20px);
-            margin-bottom: 10px;
-            resize: vertical;
+        textarea, video {
+            width: 100%;
         }
         a {
-            color: #c13584;
+            color: #007aff;
             text-decoration: none;
             font-size: 16px;
         }
         a:hover {
             text-decoration: underline;
         }
-        @keyframes flyDown {
-            from {
-                transform: translateY(-100px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes flyUp {
-            from {
-                transform: translateY(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateY(-100px);
-                opacity: 0;
-            }
-        }
-
         #copyConfirmation {
-            background-color: #fff;
+            background-color: #007aff;
+            color: #fff;
             padding: 15px;
             border-radius: 8px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            display: none; /* Changed to flex in JavaScript */
-            position: fixed; /* Position it relative to the viewport */
-            top: 20px; /* Adjust as needed */
+            display: none;
+            position: fixed;
+            top: 20px;
             left: 50%;
-            transform: translateX(-50%); /* Center horizontally */
+            transform: translateX(-50%);
             align-items: center;
             justify-content: center;
-            z-index: 1000; /* Ensure it's above other content */
+            z-index: 1000;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -108,7 +123,7 @@
     <form method="POST" action="/">
         <label for="url">Post URL:</label>
         <input type="url" name="url" required>
-
+        <h3>Select your page:</h3>
         <button type="submit" name="button" value="powdervibe">PowderVibe</button>
         <button type="submit" name="button" value="thesnowboarding">TheSnowboarding</button>
         <button type="submit" name="button" value="for.skiing">For.Skiing</button>
@@ -116,20 +131,28 @@
     </form>
     
     {% if caption_choices %}
-        <div class="content-wrapper" style="width: 100%; max-width: 800px;">
-            <div style="margin-top: 20px; width: 48%">
-                <h2>Select a Caption:</h2>
-                {% for caption in caption_choices %}
-                    <button type="button" onclick="selectCaption('{{ caption }}')" class="caption-btn">{{ caption }}</button>
-                {% endfor %}
+        <div class="content-wrapper">
+            <div style="width: 50%; padding: 20px;">
+                <h4 style="margin: 0; margin-bottom: 10px;">Select a Caption</h4>
+                <p style="font-size: 13px;">Here are five random caption choices to choose from:</p>
+                <div id="captionsContainer">
+                    {% for caption in caption_choices %}
+                        <button type="button" onclick="selectCaption('{{ caption }}')" class="caption-btn">{{ caption }}</button>
+                    {% endfor %}
+                </div>
+                <h4 style="font-size: 13px; margin-top: 20px;">Not good captions? Generate 5 new or copy overall caption structure.</h4>
+                <div style="margin-top: 20px; ">
+                    <button type="button" onclick="copyCaption()" class="caption-btn">Copy Overall Caption</button>
+                    <button type="button" onclick="generateNewCaptions()" class="caption-btn">Generate 5 New Captions</button>
+                </div>
                 <a href="{{ url_for('download', video_url=video_url) }}" download="video.mp4" id="downloadLink" style="display:none;">Download Video</a>
             </div>
-            <div style="width: 48%;">
+            <div style="width: 50%;">
                 <video loop controls style="width: 100%;">
                     <source src="{{ url_for('video_stream', url=video_url) }}" type="video/mp4">
                     Your browser does not support the video tag.
                 </video>
-                <h3 style="margin: 10px;">Original Caption:</h3>
+                <h4 style="margin: 20px 10px">Original Caption:</h4>
                 <pre style="margin: 10px; text-wrap: wrap;">{{ original_caption }}</pre>
             </div>
             <div id="staticCaptionPart" style="display: none;">
@@ -146,6 +169,16 @@
                 
                 // Combine the dynamic and static parts
                 var fullCaption = caption + '\n\n' + staticPart;
+
+                // Copy the full caption to the clipboard
+                copyCaption(fullCaption);
+            }
+
+            function copyCaption(fullCaption) {
+                // If no caption is provided, use the original caption
+                if (!fullCaption) {
+                    fullCaption = 'CAPTION \n\n' + document.getElementById('staticCaptionPart').innerText.trim();
+                }
 
                 // Create and configure a temporary textarea element
                 var tempTextarea = document.createElement('textarea');
@@ -182,8 +215,44 @@
                 }, 3000); // Time until the fly up animation starts
             }
 
+            function generateNewCaptions() {
+                console.log('Generating new captions...');
+                const buttonValue = "{{ account_name }}";
+
+                fetch('/generate_captions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'button=' + encodeURIComponent(buttonValue)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.captions) {
+                        const captionsContainer = document.getElementById('captionsContainer');
+                        captionsContainer.innerHTML = ''; // Clear existing captions
+                        data.captions.forEach(caption => {
+                            const button = document.createElement('button');
+                            button.type = 'button';
+                            button.onclick = function() { selectCaption(caption); };
+                            button.innerText = caption;
+                            button.className = 'caption-btn'; // Add your styling class
+                            captionsContainer.appendChild(button);
+                        });
+                    } else if (data.error) {
+                        console.error('Error generating new captions:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to fetch new captions:', error);
+                });
+            }
+
             // Automatically click the download link when the page loads
             document.getElementById("downloadLink").click();
+
+            // hide the form
+            document.querySelector('form').style.display = 'none';
         </script>        
     {% endif %}
 </body>

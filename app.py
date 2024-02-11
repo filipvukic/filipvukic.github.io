@@ -2,6 +2,7 @@ import random
 from flask import Flask, render_template, request, Response, stream_with_context
 import instaloader
 import requests
+from flask import jsonify
 
 app = Flask(__name__)
 
@@ -69,6 +70,19 @@ def download():
 
     return Response(stream_with_context(generate()), content_type='video/mp4')
 
+@app.route("/generate_captions", methods=['POST'])
+def generate_captions():
+    button = request.form.get('button')
+    print(f"Button: {button}")
+    if not button:
+        return jsonify({'error': 'Button value not provided'}), 400
+
+    captions = get_random_captions(button)
+    if captions:
+        return jsonify({'captions': captions})
+    else:
+        return jsonify({'error': 'Could not generate captions'}), 500
+    
 @app.route("/video_stream", methods=['GET'])
 def video_stream():
     video_url = request.args.get('url')
