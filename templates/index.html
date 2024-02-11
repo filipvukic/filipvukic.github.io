@@ -34,7 +34,6 @@
             max-width: 480px;
         }
         label, input, button, textarea {
-            width: calc(100% - 20px);
             margin-bottom: 10px;
             padding: 12px;
             border-radius: 4px;
@@ -104,12 +103,35 @@
             display: none;
             position: fixed;
             top: 20px;
-            left: 50%;
             transform: translateX(-50%);
             align-items: center;
             justify-content: center;
             z-index: 1000;
             font-weight: 500;
+        }
+        #captionsContainer {
+            text-align: center;
+        }
+        @keyframes flyDown {
+            from {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes flyUp {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
         }
     </style>
 </head>
@@ -212,7 +234,7 @@
                     setTimeout(function() {
                         confirmation.style.display = 'none';
                     }, 500); // This duration should match the animation duration
-                }, 3000); // Time until the fly up animation starts
+                }, 1500); // Time until the fly up animation starts
             }
 
             function generateNewCaptions() {
