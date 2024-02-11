@@ -2,13 +2,23 @@ import random
 from flask import Flask, render_template, request, Response, stream_with_context, jsonify
 from instagrapi import Client
 import requests
+import os
 
 app = Flask(__name__)
 
-cl = Client()
-# You need to login with your Instagram account
-# Make sure to use environment variables or another secure way to handle credentials
-cl.login('plushy.se', 'Plushy1')
+def load_or_login(username, password):
+    cl = Client()
+    session_file_path = 'session.json'
+    if os.path.exists(session_file_path):
+        cl.load_settings(session_file_path)
+        print("Session data loaded from file.")
+    else:
+        if cl.login(username, password):
+            cl.dump_settings(session_file_path)
+            print(f"Session data exported to {session_file_path}")
+    return cl
+
+cl = load_or_login('plushy.se', 'Plushy1')
 
 @app.route("/", methods=['GET', 'POST'])
 def index():
@@ -19,26 +29,22 @@ def index():
     caption_choices = None
     
     if request.method == 'POST':
-        try:
-            print("Form data received")
-            url = request.form.get('url')
-            button = request.form.get('button')
-            shortcode = url.split("/")[-2]
-            media_id = shortcode_to_media_id(shortcode)
-            media_info = cl.media_info(media_id)
-            username = media_info.user.username
-            
-            if media_info.media_type == 2:  # Check if it's a video
-                video_url = media_info.video_url
-            original_caption = media_info.caption_text
-            
-            message = create_message(username, button)
-            
-            # Get 5 random captions based on the button pressed
-            caption_choices = get_random_captions(button)
-        except Exception as e:
-            # Send back the error message to client
-            return jsonify({'error': str(e)}), 500
+        print("Form data received")
+        url = request.form.get('url')
+        button = request.form.get('button')
+        shortcode = url.split("/")[-2]
+        media_id = shortcode_to_media_id(shortcode)
+        media_info = cl.media_info(media_id)
+        username = media_info.user.username
+        
+        if media_info.media_type == 2:  # Check if it's a video
+            video_url = media_info.video_url
+        original_caption = media_info.caption_text
+        
+        message = create_message(username, button)
+        
+        # Get 5 random captions based on the button pressed
+        caption_choices = get_random_captions(button)
     
     return render_template("index.html", message=message, video_url=video_url, account_name=button, original_caption=original_caption, caption_choices=caption_choices)
 
