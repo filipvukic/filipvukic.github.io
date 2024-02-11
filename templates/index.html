@@ -60,9 +60,49 @@
         a:hover {
             text-decoration: underline;
         }
+        @keyframes flyDown {
+            from {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes flyUp {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+        }
+
+        #copyConfirmation {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            display: none; /* Changed to flex in JavaScript */
+            position: fixed; /* Position it relative to the viewport */
+            top: 20px; /* Adjust as needed */
+            left: 50%;
+            transform: translateX(-50%); /* Center horizontally */
+            align-items: center;
+            justify-content: center;
+            z-index: 1000; /* Ensure it's above other content */
+        }
     </style>
 </head>
 <body>
+    <div id="copyConfirmation">
+        <p style="margin: 0;">✓ Caption Copied</p>
+    </div>
+
     <h1>Instagram Video Downloader</h1>
     
     <form method="POST" action="/">
@@ -75,35 +115,76 @@
         <button type="submit" name="button" value="skiingviral">SkiingViral</button>
     </form>
     
-    {% if message and video_url %}
-    <div class="content-wrapper" style="width: 100%; max-width: 800px;">
-        <div>
-            <textarea id="message-text" rows="15" style="width: calc(100% - 20px);">{{ message }}</textarea><br>
-            <button onclick="copyCaption()">Copy Caption</button>
-            <!-- Hidden anchor tag for triggering download -->
-            <a href="{{ url_for('download', video_url=video_url) }}" download="video.mp4" id="downloadLink" style="display:none;">Download Video</a>
+    {% if caption_choices %}
+        <div class="content-wrapper" style="width: 100%; max-width: 800px;">
+            <div style="margin-top: 20px; width: 48%">
+                <h2>Select a Caption:</h2>
+                {% for caption in caption_choices %}
+                    <button type="button" onclick="selectCaption('{{ caption }}')" class="caption-btn">{{ caption }}</button>
+                {% endfor %}
+                <a href="{{ url_for('download', video_url=video_url) }}" download="video.mp4" id="downloadLink" style="display:none;">Download Video</a>
+            </div>
+            <div style="width: 48%;">
+                <video loop controls style="width: 100%;">
+                    <source src="{{ url_for('video_stream', url=video_url) }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <h3 style="margin: 10px;">Original Caption:</h3>
+                <pre style="margin: 10px; text-wrap: wrap;">{{ original_caption }}</pre>
+            </div>
+            <div id="staticCaptionPart" style="display: none;">
+                {{ message }}
+            </div>
         </div>
-        <div style="width: 48%;">
-            <video loop controls style="width: 100%;">
-                <source src="{{ url_for('video_stream', url=video_url) }}" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-            <h3 style="margin: 10px;">Original Caption:</h3>
-            <pre style="margin: 10px; text-wrap: wrap;">{{ original_caption }}</p>
-        </div>
-    </div>
-    <script>
-        // Copy caption function
-        function copyCaption() {
-            var copyText = document.getElementById("message-text");
-            copyText.select();
-            copyText.setSelectionRange(0, 99999); /* For mobile devices */
-            document.execCommand("copy");
-            debugger;
-        }
-        // Automatically click the download link when the page loads
-        document.getElementById("downloadLink").click();
-    </script>
+        <script>
+            function selectCaption(caption) {
+                // Retrieve the static part of the caption
+                var staticPart = document.getElementById('staticCaptionPart').innerText;
+
+                // remove any blank space at the beginning and end of the static part
+                staticPart = staticPart.trim();
+                
+                // Combine the dynamic and static parts
+                var fullCaption = caption + '\n\n' + staticPart;
+
+                // Create and configure a temporary textarea element
+                var tempTextarea = document.createElement('textarea');
+                tempTextarea.style.position = 'absolute';
+                tempTextarea.style.left = '-9999px';
+                document.body.appendChild(tempTextarea);
+
+                // Set the full caption as the textarea's value
+                tempTextarea.value = fullCaption;
+                
+                // Copy the full caption to the clipboard
+                tempTextarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempTextarea);
+
+                // Show the copy confirmation message
+                var confirmation = document.getElementById('copyConfirmation');
+        
+                // Reset any previous animation
+                confirmation.style.animation = 'none';
+
+                // Apply the fly down animation
+                confirmation.style.display = 'flex';
+                confirmation.style.animation = 'flyDown 0.5s forwards';
+
+                // Set a timeout to hide the confirmation with fly up animation
+                setTimeout(function() {
+                    confirmation.style.animation = 'flyUp 0.5s forwards';
+
+                    // Hide the confirmation after the animation completes
+                    setTimeout(function() {
+                        confirmation.style.display = 'none';
+                    }, 500); // This duration should match the animation duration
+                }, 3000); // Time until the fly up animation starts
+            }
+
+            // Automatically click the download link when the page loads
+            document.getElementById("downloadLink").click();
+        </script>        
     {% endif %}
 </body>
 </html>

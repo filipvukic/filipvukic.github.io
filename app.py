@@ -1,3 +1,4 @@
+import random
 from flask import Flask, render_template, request, Response, stream_with_context
 import instaloader
 import requests
@@ -16,10 +17,12 @@ L.download_comments = False
 def index():
     message = None
     video_url = None
-    original_caption = None  # New variable for the original caption
+    original_caption = None
     button = None
+    caption_choices = None
     
     if request.method == 'POST':
+        print("Form data received")
         url = request.form.get('url')
         button = request.form.get('button')
         shortcode = url.split("/")[-2]
@@ -27,25 +30,43 @@ def index():
         username = post.owner_username
         
         video_url = post.video_url
-        
-        # Get the original caption of the post
-        original_caption = post.caption  # Adding this line to get the caption
+        original_caption = post.caption
         
         message = create_message(username, button)
+        
+        # Get 5 random captions based on the button pressed
+        caption_choices = get_random_captions(button)
     
-    # Passing the original_caption to the template
-    return render_template("index.html", message=message, video_url=video_url, account_name=button, original_caption=original_caption)
+    return render_template("index.html", message=message, video_url=video_url, account_name=button, original_caption=original_caption, caption_choices=caption_choices)
 
+def get_random_captions(button):
+    try:
+        filename = f"{button}_captions.txt"
+        with open(filename, "r", encoding='utf-8') as file:  # Specify encoding here
+            print(f"Reading captions from {filename}")
+            captions = file.readlines()
+            captions = list(set([caption.strip() for caption in captions]))
+            selected_captions = random.sample(captions, min(len(captions), 5))
+        print(f"Selected captions: {selected_captions}")
+        return selected_captions
+    except FileNotFoundError:
+        print(f"File not found: {filename}")
+        return []
+    except UnicodeDecodeError as e:
+        print(f"Unicode decode error: {e}")
+        return []
 
 @app.route("/download")
 def download():
     video_url = request.args.get('video_url')
     response = requests.get(video_url, stream=True)
+        
+    print("Downloading video from: ", video_url)
 
     def generate():
         for chunk in response.iter_content(chunk_size=8192):
             yield chunk
-    
+
     return Response(stream_with_context(generate()), content_type='video/mp4')
 
 @app.route("/video_stream", methods=['GET'])
@@ -61,23 +82,19 @@ def video_stream():
 
 def create_message(username, button):
     messages = {
-        "powdervibe": f"Living the proper powder life 😍\n\n"
-                      f"Follow 👉 @powdervibe for the best skiing & snowboarding content! ⛷\n\n"
+        "powdervibe": f"Follow 👉 @powdervibe for the best skiing & snowboarding content! ⛷\n\n"
                       f"Credit: @{username}\n\n"
                       f"#powdervibe #powderskiing #powday #skiingday #winterwonderland",
                       
-        "thesnowboarding": f"The crew is vibing this winter 👊🏂\n\n"
-                           f"Follow 👉 @thesnowboarding for the best snowboarding content! ⛷\n\n"
+        "thesnowboarding": f"Follow 👉 @thesnowboarding for the best snowboarding content! ⛷\n\n"
                            f"Credit: @{username}\n\n"
                            f"#thesnowboarding #snowboarding #snowseason #winterwonderland #powderday",
                            
-        "for.skiing": f"Tag your skiing buddy 😎\n\n"
-                      f"Follow 👉 @for.skiing for the best skiing content! ⛷\n\n"
+        "for.skiing": f"Follow 👉 @for.skiing for the best skiing content! ⛷\n\n"
                       f"Credit: @{username}\n\n"
                       f"#forskiing #skiing #snowboarding #skiseason #winterwonderland",
 
-        "skiingviral":  f"Who would you share this run with? 🤩 \n\n"
-                        f"Tag someone that needs to see this 👊\n\n"
+        "skiingviral":  f"Tag someone that needs to see this 👊\n\n"
                         f"Follow 👉 @skiingviral for your ultimate skiing and snowboarding content 🦍\n\n"
                         f"Credit: @{username}\n"
                         f"#skiingviral\n\n"
