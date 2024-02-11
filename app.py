@@ -23,20 +23,24 @@ def index():
     caption_choices = None
     
     if request.method == 'POST':
-        print("Form data received")
-        url = request.form.get('url')
-        button = request.form.get('button')
-        shortcode = url.split("/")[-2]
-        post = instaloader.Post.from_shortcode(L.context, shortcode)
-        username = post.owner_username
-        
-        video_url = post.video_url
-        original_caption = post.caption
-        
-        message = create_message(username, button)
-        
-        # Get 5 random captions based on the button pressed
-        caption_choices = get_random_captions(button)
+        try:
+            print("Form data received")
+            url = request.form.get('url')
+            button = request.form.get('button')
+            shortcode = url.split("/")[-2]
+            post = instaloader.Post.from_shortcode(L.context, shortcode)
+            username = post.owner_username
+            
+            video_url = post.video_url
+            original_caption = post.caption
+            
+            message = create_message(username, button)
+            
+            # Get 5 random captions based on the button pressed
+            caption_choices = get_random_captions(button)
+        except instaloader.exceptions.InstaloaderException as e:
+            # Send back the error message to client
+            return jsonify({'error': str(e)}), 500
     
     return render_template("index.html", message=message, video_url=video_url, account_name=button, original_caption=original_caption, caption_choices=caption_choices)
 

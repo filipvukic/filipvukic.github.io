@@ -1,6 +1,8 @@
 import os
 import shutil
 
+account = "for.skiing"
+
 def rename_files(directory):
     print(f"Renaming files in {directory}")
     print(f"Current directory: {os.getcwd()}")
@@ -18,7 +20,7 @@ def rename_files(directory):
                     print(f"Failed to rename {file}: {e}")
 
 def main():
-    directory = './machine_learning/data_thesnowboarding'
+    directory = './machine_learning/data_' + account
     rename_files(directory)
     print("Files renamed successfully!")
 
