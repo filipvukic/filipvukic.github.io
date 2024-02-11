@@ -1,7 +1,7 @@
 import os
 import shutil
 
-account = "for.skiing"
+account = "skiingviral"
 
 def rename_files(directory):
     print(f"Renaming files in {directory}")

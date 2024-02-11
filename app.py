@@ -1,24 +1,83 @@
 import random
+import re
+import imaplib
+import email
 from flask import Flask, render_template, request, Response, stream_with_context, jsonify
 from instagrapi import Client
-import requests
+from instagrapi.mixins.challenge import ChallengeChoice
 import os
+import logging
+import imaplib
+import email
+import re
+from email.header import decode_header
+import requests
 
 app = Flask(__name__)
 
-def load_or_login(username, password):
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Environment variables or another secure method for credentials
+CHALLENGE_EMAIL = "fotboll_gilla@hotmail.com"
+CHALLENGE_PASSWORD = "FotbollGilla123"
+IMAP_SERVER = 'imap-mail.outlook.com'
+IMAP_PORT = 993
+
+IG_USERNAME = "plushy.se"
+IG_PASSWORD = "Plushy1"
+
+import imaplib
+import email
+import re
+
+def get_code_from_email(username, challenge_email, challenge_password):
+    mail = imaplib.IMAP4_SSL("imap-mail.outlook.com")  # Updated for Outlook
+    mail.login(challenge_email, challenge_password)
+    mail.select("inbox")
+    result, data = mail.search(None, "(UNSEEN)")
+    assert result == "OK", "Error during get_code_from_email: %s" % result
+    ids = data[0].split()
+    for num in reversed(ids):
+        mail.store(num, "+FLAGS", "\\Seen")  # mark as read
+        result, data = mail.fetch(num, "(RFC822)")
+        assert result == "OK", "Error during fetching email: %s" % result
+        msg = email.message_from_bytes(data[0][1])
+        if msg.is_multipart():
+            for part in msg.walk():
+                content_type = part.get_content_type()
+                content_disposition = str(part.get("Content-Disposition"))
+                if content_type == "text/html" and "attachment" not in content_disposition:
+                    body = part.get_payload(decode=True).decode()
+                    # Look for the six-digit code in the email body
+                    match = re.search(r">(\d{6})<", body)
+                    if match:
+                        return match.group(1)
+        else:
+            body = msg.get_payload(decode=True).decode()
+            match = re.search(r">(\d{6})<", body)
+            if match:
+                return match.group(1)
+    return None
+    
+
+def challenge_code_handler(username, choice):
+    if choice == ChallengeChoice.EMAIL:
+        return get_code_from_email(username, CHALLENGE_EMAIL, CHALLENGE_PASSWORD)
+    return None
+
+def login_to_instagram(username, password):
     cl = Client()
-    session_file_path = 'session.json'
-    if os.path.exists(session_file_path):
-        cl.load_settings(session_file_path)
-        print("Session data loaded from file.")
-    else:
-        if cl.login(username, password):
-            cl.dump_settings(session_file_path)
-            print(f"Session data exported to {session_file_path}")
+    cl.challenge_code_handler = challenge_code_handler
+    try:
+        cl.login(username, password)
+        logging.info("Successfully logged in as %s", username)
+    except Exception as e:
+        logging.error("Login failed: %s", e)
     return cl
 
-cl = load_or_login('plushy.se', 'Plushy1')
+cl = login_to_instagram(IG_USERNAME, IG_PASSWORD)
 
 @app.route("/", methods=['GET', 'POST'])
 def index():
