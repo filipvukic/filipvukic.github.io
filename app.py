@@ -25,6 +25,22 @@ IG_USERNAME = "plushy.se"
 IG_PASSWORD = "Plushy1"
 
 L = instaloader.Instaloader()
+session_file = f"{IG_USERNAME}.session"
+
+# Load session if it exists
+if os.path.exists(session_file):
+    L.load_session_from_file(IG_USERNAME, filename=session_file)
+    print(f"Loaded session from {session_file}")
+else:
+    L.login(IG_USERNAME, IG_PASSWORD)
+    L.save_session_to_file(session_file)
+    print(f"Saved session to {session_file}")
+
+L.save_metadata = False
+L.download_pictures = False
+L.download_video_thumbnails = False
+L.download_geotags = False
+L.download_comments = False
 
 @app.route("/", methods=['GET', 'POST'])
 def index():
