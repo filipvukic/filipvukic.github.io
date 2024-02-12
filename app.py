@@ -3,13 +3,9 @@ import re
 import imaplib
 import email
 from flask import Flask, render_template, request, Response, stream_with_context, jsonify
-from instagrapi import Client
-from instagrapi.mixins.challenge import ChallengeChoice
+import instaloader
 import os
 import logging
-import imaplib
-import email
-import re
 from email.header import decode_header
 import requests
 
@@ -28,56 +24,7 @@ IMAP_PORT = 993
 IG_USERNAME = "plushy.se"
 IG_PASSWORD = "Plushy1"
 
-import imaplib
-import email
-import re
-
-def get_code_from_email(username, challenge_email, challenge_password):
-    mail = imaplib.IMAP4_SSL("imap-mail.outlook.com")  # Updated for Outlook
-    mail.login(challenge_email, challenge_password)
-    mail.select("inbox")
-    result, data = mail.search(None, "(UNSEEN)")
-    assert result == "OK", "Error during get_code_from_email: %s" % result
-    ids = data[0].split()
-    for num in reversed(ids):
-        mail.store(num, "+FLAGS", "\\Seen")  # mark as read
-        result, data = mail.fetch(num, "(RFC822)")
-        assert result == "OK", "Error during fetching email: %s" % result
-        msg = email.message_from_bytes(data[0][1])
-        if msg.is_multipart():
-            for part in msg.walk():
-                content_type = part.get_content_type()
-                content_disposition = str(part.get("Content-Disposition"))
-                if content_type == "text/html" and "attachment" not in content_disposition:
-                    body = part.get_payload(decode=True).decode()
-                    # Look for the six-digit code in the email body
-                    match = re.search(r">(\d{6})<", body)
-                    if match:
-                        return match.group(1)
-        else:
-            body = msg.get_payload(decode=True).decode()
-            match = re.search(r">(\d{6})<", body)
-            if match:
-                return match.group(1)
-    return None
-    
-
-def challenge_code_handler(username, choice):
-    if choice == ChallengeChoice.EMAIL:
-        return get_code_from_email(username, CHALLENGE_EMAIL, CHALLENGE_PASSWORD)
-    return None
-
-def login_to_instagram(username, password):
-    cl = Client()
-    cl.challenge_code_handler = challenge_code_handler
-    try:
-        cl.login(username, password)
-        logging.info("Successfully logged in as %s", username)
-    except Exception as e:
-        logging.error("Login failed: %s", e)
-    return cl
-
-cl = login_to_instagram(IG_USERNAME, IG_PASSWORD)
+L = instaloader.Instaloader()
 
 @app.route("/", methods=['GET', 'POST'])
 def index():
@@ -86,25 +33,28 @@ def index():
     original_caption = None
     button = None
     caption_choices = None
-    
-    if request.method == 'POST':
+
+    if request.method == 'POST' and L is not None:
         print("Form data received")
         url = request.form.get('url')
         button = request.form.get('button')
         shortcode = url.split("/")[-2]
-        media_id = shortcode_to_media_id(shortcode)
-        media_info = cl.media_info(media_id)
-        username = media_info.user.username
         
-        if media_info.media_type == 2:  # Check if it's a video
-            video_url = media_info.video_url
-        original_caption = media_info.caption_text
-        
-        message = create_message(username, button)
-        
-        # Get 5 random captions based on the button pressed
-        caption_choices = get_random_captions(button)
-    
+        try:
+            post = instaloader.Post.from_shortcode(L.context, shortcode)
+            username = post.owner_username
+            
+            if post.is_video:  # Check if it's a video
+                video_url = post.video_url
+            original_caption = post.caption
+            
+            message = create_message(username, button)
+            
+            # Get 5 random captions based on the button pressed
+            caption_choices = get_random_captions(button)
+        except Exception as e:
+            logging.error("Failed to fetch post data: %s", e)
+
     return render_template("index.html", message=message, video_url=video_url, account_name=button, original_caption=original_caption, caption_choices=caption_choices)
 
 def shortcode_to_media_id(shortcode):
