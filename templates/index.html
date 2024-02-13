@@ -44,6 +44,7 @@
         }
         input {
             margin-bottom: 0;
+            width: 150px;
         }
         .caption-btn {
             font-size: 13px;
@@ -145,6 +146,7 @@
     <form method="POST" action="/">
         <label for="url">Post URL:</label>
         <input type="url" name="url" required>
+        <button type="button" id="pasteButton">Paste</button>
         <h3>Select your page:</h3>
         <button type="submit" name="button" value="powdervibe">PowderVibe</button>
         <button type="submit" name="button" value="thesnowboarding">TheSnowboarding</button>
@@ -280,6 +282,20 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Attempt to paste the copied link into the input field automatically
+            navigator.clipboard.readText().then(text => {
+                // Check if there's text in the clipboard
+                if (text && text.startsWith('http')) { // Basic validation to check if it's a URL
+                    document.querySelector('input[name="url"]').value = text;
+                }
+            }).catch(err => {
+                // Log error or inform the user if clipboard access is not possible
+                console.error('Failed to read clipboard contents: ', err);
+            });
+        });
+
+        // Add an event listener to the paste button
+        document.getElementById('pasteButton').addEventListener('click', function() {
+            // Attempt to paste the copied link into the input field
             navigator.clipboard.readText().then(text => {
                 // Check if there's text in the clipboard
                 if (text && text.startsWith('http')) { // Basic validation to check if it's a URL
