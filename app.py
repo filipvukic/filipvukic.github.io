@@ -103,8 +103,9 @@ def download():
     def generate():
         for chunk in response.iter_content(chunk_size=8192):
             yield chunk
-
-    return Response(stream_with_context(generate()), content_type='video/mp4')
+    Response = Response(stream_with_context(generate()), content_type='video/mp4')
+    Response.headers['Access-Control-Allow-Origin'] = '*'
+    return Response
 
 @app.route("/generate_captions", methods=['POST'])
 def generate_captions():
