@@ -277,5 +277,19 @@
             document.querySelector('form').style.display = 'none';
         </script>        
     {% endif %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Attempt to paste the copied link into the input field automatically
+            navigator.clipboard.readText().then(text => {
+                // Check if there's text in the clipboard
+                if (text && text.startsWith('http')) { // Basic validation to check if it's a URL
+                    document.querySelector('input[name="url"]').value = text;
+                }
+            }).catch(err => {
+                // Log error or inform the user if clipboard access is not possible
+                console.error('Failed to read clipboard contents: ', err);
+            });
+        });
+    </script>
 </body>
 </html>
