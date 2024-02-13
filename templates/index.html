@@ -172,7 +172,7 @@
                 <a href="{{ url_for('download', video_url=video_url) }}" download="video.mp4" id="downloadLink" style="display:none;">Download Video</a>
             </div>
             <div style="width: 50%;">
-                <video loop controls style="width: 100%;">
+                <video loop autoplay muted playsinline controls style="width: 100%;">
                     <source src="{{ url_for('video_stream', url=video_url) }}" type="video/mp4">
                     Your browser does not support the video tag.
                 </video>
